@@ -1,0 +1,12 @@
+# Never commit EDID dumps, backups or captures: they come from real devices.
+*.bin
+*.pcap
+*.pcapng
+camlink-edid-backups/
+
+__pycache__/
+*.py[cod]
+build/
+dist/
+*.egg-info/
+.venv/
