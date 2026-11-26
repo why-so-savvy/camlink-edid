@@ -28,6 +28,7 @@
 ## Contents
 
 - [The problem, in plain words](#the-problem-in-plain-words)
+- [Proof: it works on a real setup](#proof-it-works-on-a-real-setup)
 - [Is this for me?](#is-this-for-me)
 - [Step by step](#step-by-step)
 - [Undo](#undo)
@@ -53,6 +54,13 @@ flowchart LR
 ```
 
 This app adds that one missing line to the card's list. Nothing else changes.
+
+## Proof: it works on a real setup
+
+![The PS5's own video output screen, captured through the Cam Link 4K, reports 2560 x 1440 at 60 Hz, and the capture app shows input 2560x1440 at 60.00 fps](docs/images/proof-ps5-1440p.jpg)
+
+After the change, the PS5's own *Current video output* screen (Polish interface), captured through the Cam Link 4K, reports **2560 × 1440, 60 Hz**.
+The capture app reports an input of 2560×1440 at 60.00 fps, with frame generation and upscaling off. This is the native signal, not an upscaled 1080p picture.
 
 ## Is this for me?
 
@@ -175,7 +183,7 @@ What *can* help: everything learned here is written down. A capable AI assistant
 
 👉 **[Researching your card with an AI assistant](docs/AI-ASSISTED-RESEARCH.md)** has the safety rules, a plan and a ready-to-paste prompt.
 
-If you get it working, please share what you found so support can be added for everyone.
+If you get it working, please [share what you found in Discussions](https://github.com/why-so-savvy/camlink-edid/discussions) so support can be added for everyone.
 
 ## FAQ
 
@@ -196,6 +204,9 @@ No, not for `CamLinkEDID.exe`. Developers can also [run it from source](docs/BUI
 
 **Something went wrong.**
 See [Troubleshooting](docs/TROUBLESHOOTING.md). Every message in the app is explained there.
+
+**I have a question, or I want to share my result.**
+Ask in [Discussions](https://github.com/why-so-savvy/camlink-edid/discussions). Results from other cards are very welcome.
 
 ## For developers
 

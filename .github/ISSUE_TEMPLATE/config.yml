@@ -1,5 +1,8 @@
 blank_issues_enabled: true
 contact_links:
+  - name: Ask a question or share your result
+    url: https://github.com/why-so-savvy/camlink-edid/discussions
+    about: Questions like "will it work with my card?" and reports from your setup belong here.
   - name: Troubleshooting guide
     url: https://github.com/why-so-savvy/camlink-edid/blob/main/docs/TROUBLESHOOTING.md
     about: Every message in the app is explained here. Please check it first.
