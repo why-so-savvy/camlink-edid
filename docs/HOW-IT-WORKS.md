@@ -1,5 +1,7 @@
 # How it works
 
+*Looking for the short, non-technical version? See [What exactly happens, and where](../README.md#what-exactly-happens-and-where) in the README.*
+
 This page describes the Cam Link 4K Rev.2 (USB `0FD9:007B`) as far as this project understands it, and marks how each statement is known:
 
 - **[hardware]**: verified on a real card

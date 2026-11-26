@@ -18,7 +18,7 @@ import tkinter as tk
 from tkinter import filedialog, ttk
 from tkinter import font as tkfont
 
-from . import __version__, devices, edid, operations, protocol
+from . import PROJECT_URL, __version__, devices, edid, operations, protocol
 
 INK = "#1C2430"
 MUTED = "#5B6675"
@@ -37,11 +37,16 @@ QUIET_SOFT = "#E9ECEF"
 QHD = (2560, 1440)
 
 
+ICON = Path(__file__).with_name("assets") / "icon.ico"
+
+
 def _dpi_aware() -> None:
+    """Sharp text on scaled displays, and our own icon on the taskbar."""
     if sys.platform == "win32":
         try:
             import ctypes
             ctypes.windll.shcore.SetProcessDpiAwareness(1)
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("why-so-savvy.camlink-edid")
         except Exception:
             pass
 
@@ -135,9 +140,15 @@ class App:
         self.wizard: Optional[WriteWizard] = None
         self.t = Theme(root)
         root.title("Cam Link EDID")
+        if sys.platform == "win32" and ICON.is_file():
+            try:
+                root.iconbitmap(default=str(ICON))  # also used by the wizard and details windows
+            except tk.TclError:
+                pass
         root.configure(bg=BASE)
         root.resizable(False, False)
         root.protocol("WM_DELETE_WINDOW", self.on_close)
+        root.report_callback_exception = self._on_callback_error
         self._pump_id: Optional[str] = None
         root.bind("<Destroy>", self._on_destroy, add="+")
         self._build()
@@ -170,6 +181,13 @@ class App:
         except tk.TclError:  # the window was closed by one of the callbacks
             self._pump_id = None
 
+    def _on_callback_error(self, exc_type, value, tb) -> None:
+        """The .exe has no console, so unexpected errors are shown in the window instead of vanishing."""
+        try:
+            self.log("Unexpected error: {!r}. Please report it with this text.".format(value))
+        except tk.TclError:
+            pass
+
     def _on_destroy(self, event) -> None:
         if event.widget is self.root and self._pump_id is not None:
             try:
@@ -190,6 +208,8 @@ class App:
         _label(top, "Cam Link EDID", t.heading, bg=BASE).pack(side="left")
         self.refresh_button = ttk.Button(top, text="Refresh", style="Link.TButton", command=self.refresh)
         self.refresh_button.pack(side="right")
+        ttk.Button(top, text="Help", style="Link.TButton", command=self.open_help).pack(side="right",
+                                                                                       padx=(0, px(10)))
 
         device = tk.Frame(outer, bg=BASE)
         device.pack(fill="x", pady=(px(2), px(12)))
@@ -389,7 +409,7 @@ class App:
         elif state == edid.FACTORY_LAYOUT:
             self._set_hero(title, "Not offered", (QUIET_SOFT, MUTED),
                            "The card does not offer this mode yet, so a PS5 will not let you choose 1440p. "
-                           "Add it to the card's EDID; you can remove it again at any time.", INK)
+                           "Add it to the card's list of modes; you can remove it again at any time.", INK)
             self._show_actions(add=True, remove=False, files=True)
             self.log("Read the card: 1440p60 is not offered.")
         elif not edid.problems(data):
@@ -472,6 +492,10 @@ class App:
             self.refresh()
 
         self.run_task(task, done, failed)
+
+    def open_help(self) -> None:
+        import webbrowser
+        webbrowser.open(PROJECT_URL + "#step-by-step")
 
     def open_backups(self) -> None:
         self.backup_dir.mkdir(parents=True, exist_ok=True)

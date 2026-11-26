@@ -1,58 +1,87 @@
 # Troubleshooting
 
-Exit code `1` always means the tool stopped **before** writing, so the card is unchanged. Exit code `2` means something went wrong during or after a write. Follow the printed steps and do not keep retrying.
+Find the message you see, then follow its steps. If nothing helps, [open an issue](https://github.com/why-so-savvy/camlink-edid/issues/new/choose) and paste the text from the app's **Activity** box.
 
-## Messages
+## Opening the app
 
-**"Another program is using the Cam Link control interface"**
-Close Elgato Camera Hub, Elgato Studio and 4K Capture Utility, including their system-tray icons. Check Task Manager if you are unsure. Capture applications such as OBS normally use the video interface, not the control interface, so they do not block the tool.
+**"Windows protected your PC"**
+Click **More info**, then **Run anyway**. The app is not signed with a paid certificate.
+To check the file first, see [Verify a download](BUILDING.md#verify-a-download).
 
-**"No Cam Link 4K Rev.2 (USB 0FD9:007B) control interface found"**
-Run `python camlink-edid.py detect`.
-- If it shows `0FD9:0085`, the card is in USB 2 mode. Use a USB 3 port and cable.
-- If it shows another USB ID, your card is a different revision and is not supported.
-- If it shows nothing, check the cable and Device Manager.
+**My antivirus deleted or blocked the file**
+One-file Python apps are sometimes flagged by mistake. Check the file as described in [Verify a download](BUILDING.md#verify-a-download), then allow it in your antivirus.
+Alternatively, [run the app from source](BUILDING.md#run-from-source), which uses no .exe.
 
-**"two consecutive reads of the EDID differ"**
-The USB connection is not stable. Try another port or cable, avoid hubs, and run `status` again. Nothing was written.
+**Nothing happens when I double-click**
+Wait a few seconds: the first start unpacks the app. If still nothing appears, run it from source to see any error.
 
-**"The card's current EDID is not one this tool recognises"**
-- If a write was just interrupted, unplug USB for 5 seconds, plug it back in and run `status`.
-- If another tool changed the EDID, put back a backup with `restore`. `add` deliberately refuses to modify an EDID it does not understand.
+## Messages at the top of the window
 
-**"WRITE STOPPED at offset 0x.."**
-A safety check stopped the write.
-- If the message says it stopped **before the last chunk**, the stored EDID should be unchanged. Unplug USB for 5 seconds, plug it back in and run `status` to confirm.
-- If the **last chunk** was involved, the card may have stored the new EDID. Run `status` after a replug, and `restore` your backup if the state is unexpected.
+**Connect your Cam Link**
+No Cam Link was found. Plug it into a **USB 3** port, wait a few seconds and click **Refresh**.
 
-Please open an issue with the full output. This is exactly the kind of result we need from untested firmware.
+**Can't read the card**
+Usually Elgato Camera Hub, Elgato Studio or 4K Capture Utility is still running. Close it completely, including the icon next to the clock (check Task Manager if unsure), and click **Refresh**.
+OBS and other capture apps can stay open.
 
-**"VERIFICATION FAILED" or "not what was written"**
-The card holds something other than what was written. Replug USB, run `status`, then restore the backup named in the output:
+**Connect it to a USB 3 port**
+The card is running in USB 2 mode, where the app does not work and 1440p60 capture is not possible anyway. Use a USB 3 port (often blue) and a USB 3 cable. Avoid hubs.
 
-```powershell
-python camlink-edid.py restore "C:\Users\<you>\camlink-edid-backups\camlink-edid-<date>-before-add.bin"
-```
+**This Cam Link is not supported**
+Your card is a different revision. The app will not change it. See [I have a different Cam Link](../README.md#i-have-a-different-cam-link).
 
-## The PS5 still says the device does not support 1440p
+**Custom EDID**
+The slot this app uses already contains a different entry, perhaps from another tool. The app will not overwrite it. Use **Restore backup...** to go back to a known state.
 
-1. Run `status`. It must say "1440p60 mode present".
-2. Unplug and replug the HDMI cable so that the PS5 reads the EDID again. Restarting the PS5 also works.
-3. In Settings > Screen and Video > Video Output, try 1440p or Automatic.
-4. Make sure HDCP is off (Settings > System > HDMI > Enable HDCP). Capture cards cannot record HDCP-protected output.
+**EDID not recognised**
+The card's list is not valid. This can happen if USB was unplugged while writing. Unplug USB for 5 seconds, plug it back in and click **Refresh**. If the message stays, use **Restore backup...** and choose your oldest backup.
 
-## The capture application still shows 1920x1080
+## While writing
 
-Select the 2560x1440, 60 fps format in the application's device settings, and check that the PS5 is really outputting 1440p. The card only delivers 1440p when the source sends it.
+**Nothing was written**
+The app stopped before writing anything, so your card is unchanged. The message tells you why. For example, *"The card's EDID changed since this window opened"* means you should close the guide and click **Refresh**.
 
-## No picture at all after a change
+**Write stopped**
+A safety check stopped the write. Usually nothing was stored: the card only saves after the last of 32 pieces.
 
-Undo over USB. HDMI is not needed for that:
+1. Unplug USB for 5 seconds and plug it back in.
+2. Click **Refresh** and look at the state.
+3. If it is not what you expect, use **Restore backup...** with the file named in the message.
 
-```powershell
-python camlink-edid.py remove
-```
+Please report it. It may be the first test of a new firmware version.
 
-## Where are my backups?
+**Check after writing failed** or **Not stored as expected**
+The card reports something other than what was written. Follow the same three steps as for *Write stopped*.
 
-They are in `%USERPROFILE%\camlink-edid-backups`, unless you used `--backup-dir`. Each `.bin` file has a `.json` file next to it with its SHA-256, date and state. The oldest file is the EDID your card had before you first used the tool. Keep a copy of it somewhere else.
+**I closed the guide before the USB check**
+Nothing is wrong. Unplug USB for 5 seconds, plug it back in and click **Refresh** to confirm the state.
+
+## After the change
+
+**The PS5 still says 1440p is not supported**
+
+1. In the app, check that the label next to 2560 × 1440 at 60 Hz says **Offered**.
+2. Unplug and replug the HDMI cable, or restart the PS5, so it reads the list again.
+3. On the PS5, go to Settings > Screen and Video > Video Output > Resolution and choose **1440p**.
+4. Make sure HDCP is off: Settings > System > HDMI > Enable HDCP. Capture cards cannot capture HDCP-protected output.
+
+**The capture app still shows 1920 × 1080**
+In the capture app, open the Cam Link's properties and choose **2560 × 1440** at **60 FPS**. Also check that the PS5 really outputs 1440p.
+
+**No picture at all**
+Undo the change. It works without HDMI: open the app and click **Remove 1440p60**.
+
+## Backups
+
+Backups are saved in `C:\Users\<you>\camlink-edid-backups`. Each `.bin` file has a `.json` file next to it with its date and checksum.
+The oldest file is the list your card had before you first used the app. Keep a copy of it somewhere safe.
+
+## Command line
+
+The command line (`python camlink-edid.py`) prints the same messages. Its exit codes:
+
+| Code | Meaning |
+|---|---|
+| `0` | Success, or nothing to do |
+| `1` | Stopped before writing: the card is unchanged |
+| `2` | Problem during or after a write: follow the printed steps |

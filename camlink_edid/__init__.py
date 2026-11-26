@@ -3,4 +3,7 @@
 Unofficial, not affiliated with Elgato or Corsair.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
+
+# Public home of the project; the window's Help link opens the tutorial here.
+PROJECT_URL = "https://github.com/why-so-savvy/camlink-edid"

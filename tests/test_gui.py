@@ -187,3 +187,28 @@ class GuiTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class HelperTests(unittest.TestCase):
+    """Pure helpers of the window; need tkinter importable but no display."""
+
+    def setUp(self):
+        try:
+            from camlink_edid import gui
+        except ImportError:  # tkinter missing entirely
+            self.skipTest("tkinter not installed")
+        self.gui = gui
+
+    def test_short_path_keeps_short_and_shortens_long(self):
+        self.assertEqual(self.gui.short_path(Path("C:/a/b")), str(Path("C:/a/b")))
+        long = Path("C:/Users/someone/AppData/Local/Temp/" + "x" * 80 + "/camlink-edid-backups")
+        text = self.gui.short_path(long)
+        self.assertLessEqual(len(text), 58)
+        self.assertIn("...", text)
+        self.assertTrue(text.endswith("camlink-edid-backups"))
+
+    def test_plain_state(self):
+        base = factory_like_edid()
+        self.assertIn("does not offer", self.gui.plain_state(base))
+        self.assertIn("offers 2560", self.gui.plain_state(edid.add_qhd60(base)))
+        self.assertIn("does not recognise", self.gui.plain_state(bytes(256)))

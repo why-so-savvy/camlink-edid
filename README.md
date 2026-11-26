@@ -1,169 +1,223 @@
-# camlink-edid
+<p align="center">
+  <img src="camlink_edid/assets/icon.png" width="88" alt="">
+</p>
 
-Add a **2560x1440 @ 60 Hz** mode to the EDID of an **Elgato Cam Link 4K Rev.2** (USB ID `0FD9:007B`), so that HDMI sources such as a PlayStation 5 offer 1440p to it.
+<h1 align="center">Cam Link EDID</h1>
 
-> **Unofficial.** Not affiliated with, endorsed or supported by Elgato or Corsair.
-> **Experimental:** verified on one unit so far. Read [Safety](#safety) before writing anything.
+<p align="center">
+  <b>Get 1440p at 60 Hz from a PS5 into an Elgato Cam Link 4K (Rev.2).</b><br>
+  One small change inside the card, made safely, and undone with one click.
+</p>
 
-## Why this exists
+<p align="center">
+  <a href="https://github.com/why-so-savvy/camlink-edid/releases/latest"><img src="https://img.shields.io/github/v/release/why-so-savvy/camlink-edid?label=download" alt="Download"></a>
+  <a href="https://github.com/why-so-savvy/camlink-edid/actions/workflows/tests.yml"><img src="https://github.com/why-so-savvy/camlink-edid/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
+  <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0E7C86" alt="Windows 10 and 11">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-0E7C86" alt="MIT license"></a>
+</p>
 
-The Cam Link 4K Rev.2 can capture 2560x1440 at 60 Hz: its HDMI receiver accepts up to 300 MHz, and 1440p60 needs 241.5 MHz. But its factory **EDID**, the list of modes the card announces to the HDMI source, has no 1440p entry. A PS5 therefore says the connected HDMI device does not support 1440p.
+<p align="center">
+  <img src="docs/images/main-window.png" width="520" alt="The app showing the modes the Cam Link offers, with 2560 x 1440 not offered yet">
+</p>
 
-Tools like CRU only change what *Windows* believes about a display. They cannot change what the card tells a console.
+> [!IMPORTANT]
+> **Unofficial.** Not made, endorsed or supported by Elgato or Corsair.
+> It works **only** with the Cam Link 4K **Rev.2** (USB ID `0FD9:007B`) and has been verified on one card so far.
+> The app checks your card and refuses anything else.
 
-This tool writes one extra timing (2560x1440 @ 59.95 Hz) into an **unused slot** of the EDID stored inside the card. On the tested unit the PS5 then passed its 1440p test, and the capture application received native 2560x1440 at 60 fps, with no upscaling.
+## Contents
 
-## What changes and what does not
+- [The problem, in plain words](#the-problem-in-plain-words)
+- [Is this for me?](#is-this-for-me)
+- [Step by step](#step-by-step)
+- [Undo](#undo)
+- [What exactly happens, and where](#what-exactly-happens-and-where)
+- [Safety](#safety)
+- [I have a different Cam Link](#i-have-a-different-cam-link)
+- [FAQ](#faq)
+- More: [Troubleshooting](docs/TROUBLESHOOTING.md), [How it works (technical)](docs/HOW-IT-WORKS.md), [The story of this project](docs/PROJECT-STORY.md)
 
-| | |
-|---|---|
-| **Changed** | One unused 18-byte descriptor slot of the EDID, plus its checksum byte |
-| **Not changed** | Firmware, every existing mode (4K30, 1080p60, ...), audio, device identity |
-| **Where** | The card's own persistent memory. It survives unplugging and reboots. No background software is needed |
-| **Undo** | `remove` puts back the exact previous bytes. `restore` writes any saved backup |
+## The problem, in plain words
 
-Adding a mode does **not** raise the hardware limits: 1440p120 (about 500 MHz) and 4K60 (594 MHz) are impossible on this card, and the tool refuses such modes.
+When you connect a PS5 to a capture card, the PS5 first asks the card: *"Which picture formats can you take?"*
+The card answers with a short list stored inside it. That list is called the **EDID**.
 
-## Supported hardware
+The Cam Link 4K Rev.2 can capture **2560 × 1440 at 60 Hz**, but its list does not mention it.
+So the PS5 reports that the connected HDMI device does not support 1440p, and never offers it.
 
-The tool goes by **USB ID only**, never by product name. Elgato now uses the name "Cam Link 4K MK.2" for a *newer* revision with a different USB ID, so a box labelled "MK.2" is not enough to know which one you have.
-
-| USB ID | Device | Status |
-|---|---|---|
-| `0FD9:007B` | Cam Link 4K Rev.2 (older "MK.2") | ✅ **Supported.** Verified on 1 unit (firmware 21.08.03, MCU 23.05.09), including a full `remove` and `add` round trip with this tool |
-| `0FD9:0085` | Cam Link 4K Rev.2 in USB 2 mode | Connect it to a USB 3 port |
-| `0FD9:0066` / `0067` | Cam Link 4K, 1st generation | ❌ Different hardware |
-| `0FD9:00A1` / `00A2` | Cam Link 4K Rev.3 | ❌ Protocol unknown |
-| `0FD9:00F4` / `00F5` | Cam Link 4K Rev.4 (newer "MK.2") | ❌ Protocol unknown |
-| `1CFA:0011` | Cam Link Pro | Elgato's software lists custom EDID support for it |
-
-To find your USB ID, run `python camlink-edid.py detect`. Or open Device Manager, then Cameras > Cam Link 4K > Properties > Details > Hardware Ids.
-
-**About firmware:** the tested unit had its MCU firmware updated from the factory 21.09.23 to 23.05.09 through Camera Hub *before* this tool was finished. It is **not known** whether the update is needed, because writing has not yet been tested on a factory 21.x MCU. This tool never updates firmware. If a card answers differently from the tested one, the tool stops at the first chunk, before anything is stored. Please [report your result](CONTRIBUTING.md#reporting-a-result) either way.
-
-## Requirements
-
-- Windows 10 or 11
-- Python 3.9 or newer from [python.org](https://www.python.org/downloads/) (tick "Add python.exe to PATH" during setup)
-- The Cam Link connected to a USB 3 port
-- Elgato Camera Hub, Elgato Studio and 4K Capture Utility closed, including their tray icons
-
-No other software and no installation are needed. The tool uses only Python's standard library, including Tkinter for the window. Tkinter is part of the python.org installer ("tcl/tk and IDLE", on by default).
-
-## Using the window
-
-Download this repository (Code > Download ZIP), extract it and double-click **`camlink-edid-gui.pyw`**. You can also run `python camlink-edid.py gui`.
-
-![Main window: the card's modes, with the 2560 x 1440 row not offered yet](docs/images/main-window.png)
-
-The window reads the card and lists the modes it offers to the console. The 2560 × 1440 row is the one this tool fills in. **Add 1440p60** opens a three-step guide: Check, Write, Confirm.
-
-| Check | Confirm |
-|---|---|
-| ![Check step: what changes, backup location and two confirmations](docs/images/wizard-check.png) | ![Confirm step: unplug and replug USB to verify the change is stored](docs/images/wizard-confirm.png) |
-
-The window runs exactly the same checks as the command line below. **Write to card** stays disabled until both boxes are ticked. The window cannot be closed while writing. A problem at any step shows what happened and what to do next.
-
-## Quick start (command line)
-
-Open PowerShell in the extracted folder and run:
-
-```powershell
-python camlink-edid.py detect          # which Cam Link is connected (no communication with it)
-python camlink-edid.py status          # read-only: what the card announces right now
-python camlink-edid.py add --dry-run   # read-only: show exactly what would change
-python camlink-edid.py add             # make the change (guided, see below)
+```mermaid
+flowchart LR
+    PS5["PS5"] -- "Which formats can you take?" --> CL["Cam Link 4K<br>(list of formats inside)"]
+    CL -- "4K30, 1080p60, ...<br>+ 1440p60 (added by this app)" --> PS5
+    CL -- USB --> PC["Your PC<br>OBS, capture app"]
 ```
 
-`add` walks you through every step:
+This app adds that one missing line to the card's list. Nothing else changes.
 
-1. It reads the EDID **twice** and continues only if both reads match and the EDID is recognised.
-2. It saves a **backup** to `%USERPROFILE%\camlink-edid-backups`, then reads the file back from disk to verify it.
-3. It asks you to **unplug the HDMI cable** (keep USB connected) and to type `WRITE`.
-4. It writes 32 chunks of 8 bytes and **checks each chunk** before sending the next one.
-5. It reads the whole EDID back and compares it byte for byte.
-6. It asks you to **unplug and replug USB**, then reads the card again to confirm the change is stored.
+## Is this for me?
 
-Then connect HDMI. On a PS5, go to Settings > Screen and Video > Video Output > Resolution and choose 1440p (on the tested unit, *Automatic* also picked 1440p). In your capture application, select 2560x1440 at 60 fps.
+You need all four of these:
 
-## Commands
+- [ ] An **Elgato Cam Link 4K** whose USB ID is **`0FD9:007B`**. The app tells you this in the first step, so you don't need to know it in advance.
+- [ ] A PC with **Windows 10 or 11** and a **USB 3** port.
+- [ ] A source that should send 1440p, such as a **PS5**.
+- [ ] Five minutes. You'll unplug and replug a cable twice.
 
-| Command | What it does | Writes to the card? |
+Not sure which Cam Link you have? Just run the app (step 1). It only *reads* the card and tells you.
+If yours is a different revision, see [I have a different Cam Link](#i-have-a-different-cam-link).
+
+## Step by step
+
+### 1. Download and open the app
+
+1. Open the [**latest release**](https://github.com/why-so-savvy/camlink-edid/releases/latest) and download **`CamLinkEDID.exe`**. There is nothing to install.
+2. **Close Elgato Camera Hub**, including its icon next to the clock. It must not talk to the card at the same time.
+3. Double-click `CamLinkEDID.exe`.
+
+> [!NOTE]
+> Windows may say **"Windows protected your PC"**. Click **More info**, then **Run anyway**.
+> This happens because the app is not signed with a paid certificate. GitHub built it from the public code in this repository, and you can [check the file](docs/BUILDING.md#verify-a-download) if you like.
+
+### 2. Check what the app sees
+
+The app reads the card. Reading changes nothing. Look at the top of the window:
+
+| You see | Meaning | What to do |
 |---|---|---|
-| `gui` | Opens the window (same as double-clicking `camlink-edid-gui.pyw`) | Only through its guided steps |
-| `detect` | Lists connected Cam Link devices and whether they are supported. Sends nothing to any device | No |
-| `status [--save FILE]` | Reads the EDID and shows its state and modes | No |
-| `backup` | Saves a timestamped copy of the card's EDID | No |
-| `decode FILE` | Shows the contents of an EDID file. Works offline, on any OS | No |
-| `add [--dry-run]` | Adds the 2560x1440 @ 60 Hz mode | **Yes**, after confirmation |
-| `remove [--dry-run]` | Removes that mode again (exact inverse of `add`) | **Yes**, after confirmation |
-| `restore FILE [--dry-run]` | Writes a saved EDID back | **Yes**, after confirmation |
+| **Not offered** next to 2560 × 1440 at 60 Hz | Your card is supported and 1440p is missing | Continue with step 3 |
+| **Offered** next to 2560 × 1440 at 60 Hz | Already done | Skip to step 4 |
+| **This Cam Link is not supported** | A different revision | See [I have a different Cam Link](#i-have-a-different-cam-link) |
+| **Connect it to a USB 3 port** | The card runs in slow USB 2 mode | Use a USB 3 port (often blue) and the original cable |
+| **Can't read the card** | Usually Camera Hub is still open | Close it fully and click **Refresh** |
 
-Common options: `--backup-dir DIR` (where backups are kept) and `--no-replug-check` (skip the guided replug check). Exit codes: `0` success, `1` stopped before writing (card unchanged), `2` problem during or after a write (follow the printed steps).
+### 3. Add 1440p60
 
-## Safety
+Click **Add 1440p60**. A short guide opens.
 
-**How the tool protects your card**
+| **Check** | **Confirm** |
+|---|---|
+| ![The Check step lists what changes and where the backup goes](docs/images/wizard-check.png) | ![The Confirm step asks you to unplug and replug USB](docs/images/wizard-confirm.png) |
 
-- **Narrow scope.** It talks only to USB `0FD9:007B` and only to the EDID address. The code has no firmware, reset or mode commands at all.
-- **Exclusive access.** It opens the card's control interface exclusively, so Camera Hub cannot interleave its own commands.
-- **Two identical reads** are required before the data is trusted.
-- **Strict validation before any write:** size, header, both checksums, Cam Link identity, layout, and every mode within the 300 MHz receiver limit and the declared range limits. This matters because the card itself checks only 4 header bytes and would accept a broken EDID.
-- **Minimal change.** `add` and `remove` may only touch slot 2 and its checksum. An internal check refuses anything else.
-- **Mandatory backup.** It is verified on disk and never overwritten.
-- **Dry run and confirmation.** Use `--dry-run` to see the plan. Nothing is written unless you type `WRITE`.
-- **Each chunk is checked** (status byte, echo, read-back) before the next one is sent. On the analysed firmware, the card stores the EDID in its memory **only after the last chunk**. A stop at any earlier point therefore leaves the stored EDID unchanged. A malformed frame, like the swapped header bytes that made an early prototype fail, is rejected by the card at the very first chunk, and the tool stops right there.
-- **Ctrl+C is postponed** during the roughly one second of writing, so a write cannot be split in two.
-- **Verification.** A full read-back follows the write, and a guided unplug/replug confirms the EDID was really stored.
-- **No automatic retries**, ever.
+1. **Check:** read what will change.
+   - **Unplug the HDMI cable** from the Cam Link (keep USB connected).
+   - Tick both boxes and click **Write to card**.
+2. **Write:** takes about one second. A backup of your card's original list is saved first.
+3. **Confirm:** **unplug the USB cable**, wait 5 seconds and plug it back in. The app reads the card again to prove the change was stored.
 
-**What it cannot protect against**
+When you see **1440p60 added**, you're done.
 
-- Unplugging USB or losing power *during* the roughly one second of writing. Before the last chunk, the analysis says the stored EDID stays unchanged. During the last chunk, the result is unknown: use `status`, then `restore` if needed.
-- Hardware or firmware versions nobody has tested yet.
-- Elgato software replacing the EDID. A factory reset or firmware update *may* restore the factory EDID (untested). If it does, run `add` again.
+![The final step confirms that 1440p60 was added](docs/images/wizard-done.png)
+
+### 4. Connect the PS5
+
+1. Plug the HDMI cable back into the Cam Link.
+2. On the PS5, open **Settings > Screen and Video > Video Output > Resolution** and choose **1440p** (or keep *Automatic*).
+3. If the PS5 shows a test screen, let it finish.
+
+### 5. Set up your capture app
+
+In OBS or your capture app, open the Cam Link's settings and choose **2560 × 1440** at **60 FPS**.
+The app does not need to stay open, and you never need to run it again: the change lives inside the card.
 
 ## Undo
 
-```powershell
-python camlink-edid.py remove                 # exact inverse of add
-python camlink-edid.py restore "<backup>.bin" # any backup from %USERPROFILE%\camlink-edid-backups
-```
+Open the app and click **Remove 1440p60**. Or choose **Restore backup...** and pick a backup file.
+Undo works over USB alone, even if there is no picture at all.
 
-Both work over USB alone, even when there is no HDMI picture at all.
+Backups are kept in `C:\Users\<you>\camlink-edid-backups`. The oldest file is your card's original. Keep a copy somewhere safe.
 
-## Troubleshooting and details
+## What exactly happens, and where
 
-- [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md): error messages and what to do
-- [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md): the hardware, the protocol, the exact bytes, and what is verified versus inferred
-- [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md): tested setups and the revision list
+| | |
+|---|---|
+| **Where the change is stored** | Inside the Cam Link, in the small chip that answers the PS5's question. Not in Windows, not in OBS, not in the PS5. |
+| **What changes** | 15 bytes out of 256, in one *unused* slot of the list, plus a checksum. All existing formats stay exactly as they were. |
+| **What is added** | 2560 × 1440 at 59.95 Hz. This exact entry has been accepted by a real PS5. |
+| **What the app sends** | Only "read 8 bytes" and "write 8 bytes" requests for that list, the same kind Elgato's own software uses. Nothing touches the card's firmware. |
+| **What stays on your PC** | Only the backup files. Nothing runs in the background. |
+| **How long it lasts** | Until you change it again. It survives unplugging, restarts and other PCs. A factory reset or firmware update from Elgato *might* restore the original list. If that happens, just add it again. |
+
+The full technical description, with every byte, is in [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md).
+
+## Safety
+
+**How the app protects your card:**
+
+- It only works on the exact card model it was tested with, `0FD9:007B`.
+- It reads the card twice before trusting what it sees.
+- It checks every byte of the new list before writing it. The card itself would accept a broken list.
+- It always saves a backup first.
+- It won't let you write until you confirm the HDMI cable is unplugged.
+- It checks each of the 32 small pieces as it writes them and stops at the first sign of trouble. The card only stores the new list after the very last piece, so a stopped write changes nothing.
+- It cannot be closed in the middle of writing.
+- It reads the card back afterwards, and again after you replug it.
+
+**What it cannot protect against:**
+
+- Pulling the USB cable during the one second of writing. If that happens, run the app again: it shows the state and lets you restore.
+- Card revisions or firmware nobody has tested yet. Please [report your result](CONTRIBUTING.md#reporting-a-result).
+
+## I have a different Cam Link
+
+Elgato has made several Cam Link 4K revisions, and confusingly the name **"MK.2"** has been used for two of them.
+**Only the USB ID tells you which one you have.**
+
+| USB ID | Model | This app |
+|---|---|---|
+| `0FD9:007B` | Cam Link 4K Rev.2 (older "MK.2") | ✅ Supported |
+| `0FD9:0066` | Cam Link 4K, 1st generation | ❌ Different hardware |
+| `0FD9:00A1` | Cam Link 4K Rev.3 | ❌ Not yet known. Most promising candidate |
+| `0FD9:00F4` | Cam Link 4K Rev.4 (newer "MK.2") | ❌ Not yet known |
+| `1CFA:0011` | Cam Link Pro | Not needed: Elgato's own software offers custom EDID |
+
+**This app is not the right tool for those cards. Please don't try to force it.**
+What *can* help: everything learned here is written down. A capable AI assistant (ChatGPT, Claude, Gemini or a coding agent) can use it to help you investigate your own card, carefully and step by step. That is how this project was done.
+
+👉 **[Researching your card with an AI assistant](docs/AI-ASSISTED-RESEARCH.md)** has the safety rules, a plan and a ready-to-paste prompt.
+
+If you get it working, please share what you found so support can be added for everyone.
 
 ## FAQ
 
-**Does it work with an Xbox or a PC?** The new mode is a normal EDID entry, so other sources may offer 1440p60 too. Only the PS5 has been tested.
+**Does this make my Cam Link more powerful?**
+No. It only tells the PS5 about a format the card could already capture. 1440p at 120 Hz and 4K at 60 Hz remain impossible on this hardware.
 
-**Will the change survive reinstalling Windows or moving the card to another PC?** Yes. It is stored in the card.
+**Does it work with an Xbox or a PC?**
+Probably, because the new entry is a standard one. Only the PS5 has been tested.
 
-**Do I need Camera Hub?** No, and it must be closed while the tool runs.
+**Does 1440p60 mean my game runs at 60 FPS?**
+No. It is the HDMI signal format. The game decides its own frame rate.
 
-**Why 59.95 Hz and not exactly 60?** This is the exact timing that a PS5 has accepted on real hardware. It uses CVT reduced blanking at 241.50 MHz.
+**Will it void my warranty?**
+It might. The change can be undone, but it is unofficial. See the [disclaimer](#disclaimer).
 
-**Linux or macOS?** Only `decode` works there for now. Device access is Windows-only.
+**Do I need Python?**
+No, not for `CamLinkEDID.exe`. Developers can also [run it from source](docs/BUILDING.md).
 
-## Contributing
+**Something went wrong.**
+See [Troubleshooting](docs/TROUBLESHOOTING.md). Every message in the app is explained there.
 
-Results from other units, especially with factory firmware, are the most valuable contribution. See [CONTRIBUTING.md](CONTRIBUTING.md).
+## For developers
+
+```powershell
+python camlink-edid.py --help                   # command-line version (detect, status, add, remove, restore...)
+python -m unittest discover -s tests            # tests against a simulated card, no hardware needed
+python packaging/build_exe.py                   # build CamLinkEDID.exe (needs PyInstaller)
+```
+
+Only the Python standard library is used. See [docs/BUILDING.md](docs/BUILDING.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Credits
 
-- [schlarpc/elgato-cam-link-4k-firmware-re](https://github.com/schlarpc/elgato-cam-link-4k-firmware-re) for the documentation of the differences between Cam Link 4K revisions.
-- [Everlite/EverLive v1.3.0](https://github.com/Everlite/EverLive/releases/tag/v1.3.0) for the PS5-tested 2560x1440 @ 59.95 Hz timing (tested there on a different capture card).
+- [schlarpc/elgato-cam-link-4k-firmware-re](https://github.com/schlarpc/elgato-cam-link-4k-firmware-re) documented how the Cam Link 4K revisions differ.
+- [Everlite/EverLive v1.3.0](https://github.com/Everlite/EverLive/releases/tag/v1.3.0) published the PS5-tested 2560 × 1440 at 59.95 Hz timing (used there on a different capture card).
+
+Made by **why-so-savvy**. Read [how this project came together](docs/PROJECT-STORY.md).
 
 ## Disclaimer
 
-This software writes to the persistent memory of your device. It is provided "as is", without warranty of any kind (see [LICENSE](LICENSE)). Use it at your own risk. It may void your warranty.
-
-Elgato and Cam Link are trademarks of Corsair Memory, Inc. PlayStation is a trademark of Sony Interactive Entertainment Inc. They are used here only to identify compatible hardware.
+This software writes to the memory of your device. It is provided "as is", without warranty of any kind (see [LICENSE](LICENSE)). Use it at your own risk.
+Elgato and Cam Link are trademarks of Corsair Memory, Inc. PlayStation and PS5 are trademarks of Sony Interactive Entertainment Inc. They are used only to identify compatible hardware.
 
 ## License
 

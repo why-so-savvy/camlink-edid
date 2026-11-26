@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Troubleshooting guide
+    url: https://github.com/why-so-savvy/camlink-edid/blob/main/docs/TROUBLESHOOTING.md
+    about: Every message in the app is explained here. Please check it first.
+  - name: I have a different Cam Link revision
+    url: https://github.com/why-so-savvy/camlink-edid/blob/main/docs/AI-ASSISTED-RESEARCH.md
+    about: How to investigate your own card safely, with an AI assistant.

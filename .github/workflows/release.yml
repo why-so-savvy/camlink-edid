@@ -1,0 +1,54 @@
+name: release
+
+# Push a tag like v0.3.0 to build CamLinkEDID.exe on GitHub's servers from the
+# tagged source, attach a signed build-provenance attestation and publish it.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write       # create the release
+  id-token: write       # build provenance
+  attestations: write   # build provenance
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Tests (simulated card, no hardware)
+        run: python -m unittest discover -s tests -v
+
+      - name: Tag must match the version in the code
+        shell: pwsh
+        run: |
+          $v = (Select-String -Path camlink_edid/__init__.py -Pattern '__version__ = "(.+)"').Matches[0].Groups[1].Value
+          if ("v$v" -ne $env:TAG) { throw "Tag $env:TAG does not match version $v" }
+
+      - name: Build CamLinkEDID.exe
+        run: |
+          python -m pip install pyinstaller==6.22.3
+          python packaging/build_exe.py
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: dist/CamLinkEDID.exe
+
+      - name: Publish the release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create $env:TAG
+          dist/CamLinkEDID.exe dist/CamLinkEDID.exe.sha256
+          --title "Cam Link EDID $env:TAG"
+          --notes-file packaging/release-notes.md
