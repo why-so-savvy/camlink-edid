@@ -106,6 +106,7 @@ On the tested unit, the manufacture-week field had also been changed earlier, du
 | PS5 1440p output test | Passed [hardware, owner report] |
 | Capture application input | 2560x1440, 60.00 fps, no frame generation or upscaling [hardware, screenshot] |
 | Windows restart | Still working [hardware, owner report] |
+| This tool, `remove` then `add`, each followed by a USB replug | Both writes verified chunk by chunk and in full. After each replug the card held exactly the intended EDID. PS5 1440p confirmed afterwards [hardware] |
 | Not yet verified | PS5 restart with a fixed 1440p setting; a frame-uniqueness analysis of a 60 fps recording |
 
 ## Why not RAM-only?

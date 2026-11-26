@@ -5,6 +5,7 @@
 | # | USB ID | BASE firmware | MCU firmware | Source | Result | Persistence | Reporter |
 |---|---|---|---|---|---|---|---|
 | 1 | `0FD9:007B` | 21.08.03 | 23.05.09 (updated from factory 21.09.23) | PS5, Automatic resolution | 1440p test passed. Capture input 2560x1440 @ 60.00 fps | Survived a USB replug (verified by reading the card) and a Windows restart | why-so-savvy |
+| 1b | same unit | 21.08.03 | 23.05.09 | PS5 | **Tool v0.1.0 round trip:** `remove`, then `add`. Every chunk passed its checks, full read-back matched, and each result survived a USB replug. PS5 1440p at about 60 fps confirmed afterwards | Both states read back after a replug | why-so-savvy |
 
 **Wanted:** results from `0FD9:007B` units on factory firmware, especially MCU 21.x, and any `remove` or `restore` round trip. See [CONTRIBUTING.md](../CONTRIBUTING.md#reporting-a-result).
 

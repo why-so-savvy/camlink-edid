@@ -30,7 +30,7 @@ The tool goes by **USB ID only**, never by product name. Elgato now uses the nam
 
 | USB ID | Device | Status |
 |---|---|---|
-| `0FD9:007B` | Cam Link 4K Rev.2 (older "MK.2") | ✅ **Supported.** Verified on 1 unit (firmware 21.08.03, MCU 23.05.09) |
+| `0FD9:007B` | Cam Link 4K Rev.2 (older "MK.2") | ✅ **Supported.** Verified on 1 unit (firmware 21.08.03, MCU 23.05.09), including a full `remove` and `add` round trip with this tool |
 | `0FD9:0085` | Cam Link 4K Rev.2 in USB 2 mode | Connect it to a USB 3 port |
 | `0FD9:0066` / `0067` | Cam Link 4K, 1st generation | ❌ Different hardware |
 | `0FD9:00A1` / `00A2` | Cam Link 4K Rev.3 | ❌ Protocol unknown |

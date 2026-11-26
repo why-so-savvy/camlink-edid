@@ -264,7 +264,7 @@ def _write_flow(args, env: Env, label: str, plan: Callable[[bytes], bytes], what
     env.say("Written and verified: a full read-back matches byte for byte.")
     result = _replug_check(args, env, target, backup)
     if result == OK:
-        env.say("\nConnect the HDMI cable again.")
+        env.say("\nThen connect the HDMI cable again.")
         if label == "add":
             env.say("On a PS5: Settings > Screen and Video > Video Output > Resolution > 1440p.")
             env.say("To undo later:  python camlink-edid.py remove")
