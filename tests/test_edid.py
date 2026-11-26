@@ -128,6 +128,14 @@ class ChangeTests(unittest.TestCase):
         with self.assertRaises(edid.EdidError):
             edid.add_qhd60(with_checksum(other))
 
+    def test_offered_modes(self):
+        before = {(m.width, m.height, m.refresh_hz, m.interlaced) for m in edid.offered_modes(self.base)}
+        after = {(m.width, m.height, m.refresh_hz, m.interlaced) for m in edid.offered_modes(edid.add_qhd60(self.base))}
+        self.assertNotIn((2560, 1440, 60, False), before)
+        self.assertEqual(after - before, {(2560, 1440, 60, False)})
+        self.assertTrue(any(m.preferred and m.width == 3840 for m in edid.offered_modes(self.base)))
+        self.assertEqual(edid.offered_modes(b"\x00" * 10), [])
+
     def test_describe_never_crashes(self):
         for sample in (self.base, edid.add_qhd60(self.base), bytes(256), b"\x00" * 10):
             self.assertTrue(edid.describe(sample))

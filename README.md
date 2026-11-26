@@ -48,11 +48,25 @@ To find your USB ID, run `python camlink-edid.py detect`. Or open Device Manager
 - The Cam Link connected to a USB 3 port
 - Elgato Camera Hub, Elgato Studio and 4K Capture Utility closed, including their tray icons
 
-No other software and no installation are needed. The tool uses only Python's standard library.
+No other software and no installation are needed. The tool uses only Python's standard library, including Tkinter for the window. Tkinter is part of the python.org installer ("tcl/tk and IDLE", on by default).
 
-## Quick start
+## Using the window
 
-Download this repository (Code > Download ZIP), extract it, open PowerShell in that folder and run:
+Download this repository (Code > Download ZIP), extract it and double-click **`camlink-edid-gui.pyw`**. You can also run `python camlink-edid.py gui`.
+
+![Main window: the card's modes, with the 2560 x 1440 row not offered yet](docs/images/main-window.png)
+
+The window reads the card and lists the modes it offers to the console. The 2560 × 1440 row is the one this tool fills in. **Add 1440p60** opens a three-step guide: Check, Write, Confirm.
+
+| Check | Confirm |
+|---|---|
+| ![Check step: what changes, backup location and two confirmations](docs/images/wizard-check.png) | ![Confirm step: unplug and replug USB to verify the change is stored](docs/images/wizard-confirm.png) |
+
+The window runs exactly the same checks as the command line below. **Write to card** stays disabled until both boxes are ticked. The window cannot be closed while writing. A problem at any step shows what happened and what to do next.
+
+## Quick start (command line)
+
+Open PowerShell in the extracted folder and run:
 
 ```powershell
 python camlink-edid.py detect          # which Cam Link is connected (no communication with it)
@@ -76,6 +90,7 @@ Then connect HDMI. On a PS5, go to Settings > Screen and Video > Video Output > 
 
 | Command | What it does | Writes to the card? |
 |---|---|---|
+| `gui` | Opens the window (same as double-clicking `camlink-edid-gui.pyw`) | Only through its guided steps |
 | `detect` | Lists connected Cam Link devices and whether they are supported. Sends nothing to any device | No |
 | `status [--save FILE]` | Reads the EDID and shows its state and modes | No |
 | `backup` | Saves a timestamped copy of the card's EDID | No |

@@ -166,18 +166,28 @@ def open_card() -> HidTransport:
     return HidTransport(paths[0])
 
 
-def wait_for_replug(say, sleep=time.sleep, timeout_s: float = 180.0) -> bool:
-    """Wait until the card disappears and comes back. Returns False on timeout."""
+def wait_for_replug(say, sleep=time.sleep, timeout_s: float = 180.0, cancel=None) -> bool:
+    """Wait until the card disappears and comes back. Lists devices only, no I/O to the card.
+
+    Returns False on timeout or when `cancel` (a threading.Event) is set.
+    """
     deadline = time.monotonic() + timeout_s
+
+    def stop() -> bool:
+        return time.monotonic() > deadline or (cancel is not None and cancel.is_set())
+
     while control_interface_present():
-        if time.monotonic() > deadline:
+        if stop():
             return False
         sleep(0.5)
     say("  Unplugged. Wait 5 seconds, then plug it back in.")
     while not control_interface_present():
-        if time.monotonic() > deadline:
+        if stop():
             return False
         sleep(0.5)
     say("  Plugged in. Waiting for the card to start...")
-    sleep(3.0)
+    for _ in range(6):
+        if cancel is not None and cancel.is_set():
+            return False
+        sleep(0.5)
     return True

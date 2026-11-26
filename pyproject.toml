@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "camlink-edid"
-version = "0.1.0"
+version = "0.2.0"
 description = "Unofficial tool to add a 2560x1440 @ 60 Hz mode to the EDID of an Elgato Cam Link 4K Rev.2 (USB 0FD9:007B)"
 readme = "README.md"
 license = "MIT"
@@ -22,6 +22,9 @@ classifiers = [
 
 [project.scripts]
 camlink-edid = "camlink_edid.cli:main"
+
+[project.gui-scripts]
+camlink-edid-gui = "camlink_edid.gui:main"
 
 [tool.setuptools]
 packages = ["camlink_edid"]

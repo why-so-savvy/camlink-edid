@@ -320,6 +320,55 @@ _VIC = {1: "640x480p60", 2: "720x480p60 4:3", 3: "720x480p60 16:9", 4: "1280x720
         94: "3840x2160p25", 95: "3840x2160p30", 97: "3840x2160p60"}
 
 
+def _vic_mode(name: str) -> Tuple[int, int, int, bool]:
+    size, rest = name.split(" ")[0].split("x")[0], name.split(" ")[0].split("x")[1]
+    interlaced = "i" in rest
+    height, rate = rest.replace("i", "p").split("p")
+    return int(size), int(height), int(rate), interlaced
+
+
+@dataclass(frozen=True)
+class Mode:
+    width: int
+    height: int
+    refresh_hz: int
+    interlaced: bool
+    preferred: bool = False
+
+
+def offered_modes(e: bytes) -> List[Mode]:
+    """Video modes a source sees: the detailed timings plus the CTA-861 video codes.
+
+    (PC-only standard/established timings are left out on purpose.)
+    """
+    e = bytes(e)
+    if len(e) != EDID_SIZE or e[:8] != HEADER:
+        return []
+    found = {}
+    for n, o in enumerate(DESCRIPTOR_OFFSETS):
+        t = decode_dtd(e[o:o + 18])
+        if t:
+            m = Mode(t.h_active, t.v_active * (2 if t.interlaced else 1), round(t.refresh_hz), t.interlaced, n == 0)
+            found[(m.width, m.height, m.refresh_hz, m.interlaced)] = m
+    try:
+        blocks = cta_data_blocks(e) if e[126] and e[128] == 2 else []
+        timings = cta_timings(e) if blocks else []
+    except EdidError:
+        blocks, timings = [], []
+    for tag, payload in blocks:
+        if tag != 2:
+            continue
+        for b in payload:
+            vic = (b & 0x7F) if 129 <= b <= 192 else b
+            if vic in _VIC:
+                w, h, r, i = _vic_mode(_VIC[vic])
+                found.setdefault((w, h, r, i), Mode(w, h, r, i))
+    for t in timings:
+        found.setdefault((t.h_active, t.v_active, round(t.refresh_hz), t.interlaced),
+                         Mode(t.h_active, t.v_active, round(t.refresh_hz), t.interlaced))
+    return sorted(found.values(), key=lambda m: (-m.width * m.height, m.interlaced, -m.refresh_hz))
+
+
 def describe(e: bytes) -> List[str]:
     """Human-readable summary of the modes and fields that matter here."""
     e = bytes(e)
