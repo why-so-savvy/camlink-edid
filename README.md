@@ -36,7 +36,7 @@
 - [Safety](#safety)
 - [I have a different Cam Link](#i-have-a-different-cam-link)
 - [FAQ](#faq)
-- More: [Troubleshooting](docs/TROUBLESHOOTING.md), [How it works (technical)](docs/HOW-IT-WORKS.md), [The story of this project](docs/PROJECT-STORY.md)
+- [Documentation](#documentation): how it works, troubleshooting, compatibility and more
 
 ## The problem, in plain words
 
@@ -207,6 +207,18 @@ See [Troubleshooting](docs/TROUBLESHOOTING.md). Every message in the app is expl
 
 **I have a question, or I want to share my result.**
 Ask in [Discussions](https://github.com/why-so-savvy/camlink-edid/discussions). Results from other cards are very welcome.
+
+## Documentation
+
+| Document | What's inside |
+|---|---|
+| [How it works](docs/HOW-IT-WORKS.md) | The hardware, the USB messages, the exact bytes that change, and what is verified versus inferred |
+| [Troubleshooting](docs/TROUBLESHOOTING.md) | Every message the app can show, and what to do |
+| [Compatibility](docs/COMPATIBILITY.md) | Tested setups and the list of Cam Link revisions by USB ID |
+| [Researching other revisions with AI](docs/AI-ASSISTED-RESEARCH.md) | A safe plan and a ready prompt for owners of other Cam Link models |
+| [Building and verifying](docs/BUILDING.md) | Check a download, run from source, run the tests, build the .exe |
+| [Project story](docs/PROJECT-STORY.md) | How this was figured out, including the bug that almost ended it |
+| [Changelog](CHANGELOG.md) | What changed in each version |
 
 ## For developers
 
