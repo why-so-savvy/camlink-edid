@@ -66,7 +66,8 @@ def main() -> int:
     subprocess.run(command, check=True, cwd=ROOT)
     exe = ROOT / "dist" / (NAME + ".exe")
     digest = hashlib.sha256(exe.read_bytes()).hexdigest()
-    (ROOT / "dist" / (NAME + ".exe.sha256")).write_text("{}  {}.exe\n".format(digest, NAME), encoding="ascii")
+    # Unix line ending, so "sha256sum -c" works too (text mode on Windows would write CRLF).
+    (ROOT / "dist" / (NAME + ".exe.sha256")).write_bytes("{}  {}.exe\n".format(digest, NAME).encode("ascii"))
     print("Built {} ({} KiB), version {}\nSHA-256 {}".format(exe, exe.stat().st_size // 1024, v, digest))
     return 0
 
