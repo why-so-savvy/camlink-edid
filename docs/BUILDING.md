@@ -18,7 +18,7 @@ gh attestation verify .\CamLinkEDID.exe --repo why-so-savvy/camlink-edid
 
 ## Run from source
 
-You need [Python 3.9+](https://www.python.org/downloads/) from python.org. The installer includes Tkinter by default. No other packages are needed.
+You need [Python 3.10+](https://www.python.org/downloads/) from python.org. The installer includes Tkinter by default. No other packages are needed.
 
 ```powershell
 python camlink-edid-gui.pyw            # the window (or double-click the file)
@@ -34,7 +34,7 @@ python -m unittest discover -s tests
 
 The tests run against `tests/fakes.py`, a simulated card. It behaves like the real one: it answers malformed messages with status `01`, keeps writes in a staging buffer and stores them only after the last chunk. Window tests are skipped automatically where there is no display. The optional factory-EDID test runs only if `CAMLINK_EDID_FACTORY_DUMP` points to an EDID read from a real card.
 
-GitHub runs the tests on Windows and Linux with Python 3.9 and 3.13 on every push.
+GitHub runs the tests on Windows and Linux with Python 3.10 and 3.14 on every push.
 
 ## Build the .exe locally
 
